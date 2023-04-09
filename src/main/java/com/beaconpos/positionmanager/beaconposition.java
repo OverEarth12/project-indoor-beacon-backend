@@ -98,4 +98,9 @@ public class beaconposition {
     public void setRssi3(Integer rssi3) {
         this.rssi3 = rssi3;
     }
+
+    @Override
+    public String toString(){
+        return "(uuid: "+this.uuid+", room: "+this.roomid+", rss1: "+this.rssi1+", rss2: "+this.rssi2+", rss3: "+this.rssi3+")";
+    }
 }

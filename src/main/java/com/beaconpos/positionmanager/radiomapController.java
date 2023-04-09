@@ -13,9 +13,9 @@ public class radiomapController {
     @Autowired
     private radiomapService RadioMapService;
 
-    @RequestMapping(value = "/savepos", method = POST)
-    public String savePosition(@RequestBody radiomap rdm) {
-        return "Success: "+RadioMapService.postRadioMap(rdm);
+    @RequestMapping(value = "/savepos/{posx}/{posy}", method = POST)
+    public String savePosition(@RequestBody radiomap rdm, @PathVariable("posx") Integer posx, @PathVariable("posy") Integer posy) {
+        return RadioMapService.postRadioMap(rdm, posx, posy);
     }
 
     @CrossOrigin(origins = "http://localhost:3000")
@@ -30,14 +30,14 @@ public class radiomapController {
         return "Success:"+frssi;
     }
 
+//    @CrossOrigin(origins = "http://10.72.13.78:54678")
     @RequestMapping(value = "/saveBeacons", method = POST)
     public String saveBeacons(@RequestBody List<radiomap> beaconList){
-        RadioMapService.saveBeaconPosition(beaconList);
-        return "Success";
+        return RadioMapService.saveBeaconPosition(beaconList);
     }
 
-    @RequestMapping(value = "/testscanner", method = GET)
-    public String testScannerinRoom(@RequestBody testscanners ts){
-        return "Success:"+RadioMapService.isScannerInRoom(ts.getRoomid(), ts.getScannerid());
+    @RequestMapping(value = "/test", method = GET)
+    public radiomap testScannerinRoom(@RequestBody radiomap r){
+        return r;
     }
 }

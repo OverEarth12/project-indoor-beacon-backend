@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package radiomap;
+option java_package = "com.proto.radiomap";
+option java_multiple_files = true;
+
+message RadiomapMessage {
+  string roomid = 1;
+  repeated int32 rssi = 2;
+  string scannerid = 3;
+  repeated string uuid = 4;
+}
+service DummyService {}

@@ -15,8 +15,8 @@ public class radiomap {
     private String roomid;
     private String scannerid;
     private int rssi;
-    private Integer positionx;
-    private Integer positiony;
+//    private Integer positionx;
+//    private Integer positiony;
     private String uuid;
 
     public radiomap(){}
@@ -32,8 +32,8 @@ public class radiomap {
         this.roomid = roomid;
         this.scannerid = scannerid;
         this.rssi = rssi;
-        this.positionx = positionx;
-        this.positiony = positiony;
+//        this.positionx = positionx;
+//        this.positiony = positiony;
     }
 
     public radiomap(int id, String roomid, String scannerid, int rssi, int positionx, int positiony) {
@@ -41,8 +41,8 @@ public class radiomap {
         this.roomid = roomid;
         this.scannerid = scannerid;
         this.rssi = rssi;
-        this.positionx = positionx;
-        this.positiony = positiony;
+//        this.positionx = positionx;
+//        this.positiony = positiony;
     }
 
     public void setRssi(int rssi) {
@@ -70,11 +70,11 @@ public class radiomap {
     }
 
     public int getPositionx() {
-        return positionx;
+        return 0;
     }
 
     public int getPositiony() {
-        return positiony;
+        return 0;
     }
 
     public String getUuid() {
