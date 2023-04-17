@@ -28,6 +28,10 @@ public class beaconposition {
         setRssiBySlot(slot, newRssi);
     }
 
+    public Integer getRssiBySlot(int slot){
+        return slot == 1 ? this.rssi1 : slot == 2 ? this.rssi2 : slot == 3 ? this.rssi3 : 0;
+    }
+
     public void setRssiBySlot(int slot, Integer newRssi){
         if(slot == 1){
             this.rssi1 = newRssi;
@@ -101,6 +105,9 @@ public class beaconposition {
 
     @Override
     public String toString(){
+        if(roomid == null || (rssi3 == null || (rssi1 == null || rssi2 == null))){
+            return "(uuid"+this.uuid+" is not in area.";
+        }
         return "(uuid: "+this.uuid+", room: "+this.roomid+", rss1: "+this.rssi1+", rss2: "+this.rssi2+", rss3: "+this.rssi3+")";
     }
 }
