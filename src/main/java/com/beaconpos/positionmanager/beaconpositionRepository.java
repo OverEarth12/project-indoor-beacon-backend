@@ -8,9 +8,11 @@ import java.util.List;
 public interface beaconpositionRepository extends JpaRepository<beaconposition, String> {
     List<beaconposition> findByRoomid(String roomid);
 
-    @Query("SELECT bp from beaconposition bp WHERE bp.uuid NOT IN (SELECT uuid from beaconowner WHERE returntimestamp IS NULL)")
+    @Query("SELECT bp from beaconposition bp WHERE bp.uuid NOT IN (SELECT uuid from beaconowner WHERE returntimestamp IS NULL) AND bp.roomid IS NULL ")
     List<beaconposition> findNotOwnedBeacons();
 
     @Query("SELECT bp from beaconposition bp WHERE bp.roomid = ?1 OR bp.uuid IN ?2")
     List<beaconposition> findByRoomidandids(String roomid, String[] ids);
+
+    List<beaconposition> findByUuid(String uuid);
 }

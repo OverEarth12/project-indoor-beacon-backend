@@ -7,7 +7,10 @@ import java.time.LocalDateTime;
 @Entity
 public class beaconowner {
     @Id
-    private String user_id;
+    @GeneratedValue(strategy = GenerationType.SEQUENCE)
+    private int logid;
+    @Column(name = "user_id")
+    private String userid;
     private String uuid;
     @Column(name = "start_timestamp")
     private LocalDateTime starttimestamp;
@@ -20,29 +23,44 @@ public class beaconowner {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", insertable = false, updatable = false)
-    private beaconowner ownedby;
+    private users ownedby;
 
     public beaconowner() {
     }
 
+    public beaconowner(String user_id, String uuid) {
+        this.userid = user_id;
+        this.uuid = uuid;
+        this.starttimestamp = LocalDateTime.now();
+    }
+
     public beaconowner(String user_id, String uuid, LocalDateTime starttimestamp, LocalDateTime returntimestamp) {
-        this.user_id = user_id;
+        this.userid = user_id;
         this.uuid = uuid;
         this.starttimestamp = starttimestamp;
         this.returntimestamp = returntimestamp;
     }
 
+    public void returnBeacon(){
+        if(this.returntimestamp == null){
+        this.returntimestamp = LocalDateTime.now();}
+    }
+
     @Override
     public String toString(){
-        return this.user_id+" owned "+this.uuid;
+        return this.userid+" owned "+this.uuid;
     }
 
     public String getUser_id() {
-        return user_id;
+        return userid;
     }
 
     public void setUser_id(String user_id) {
-        this.user_id = user_id;
+        this.userid = user_id;
+    }
+
+    public int getLogid() {
+        return logid;
     }
 
     public String getUuid() {

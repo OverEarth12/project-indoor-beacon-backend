@@ -1,15 +1,15 @@
 package com.beaconpos.positionmanager;
 
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 @Service
 public class radiomapService {
@@ -33,6 +33,8 @@ public class radiomapService {
     private beaconownerRepository beaconownerrepository;
     @Autowired
     private usersRepository usersrepository;
+//    @Autowired
+//    private scannerRepository scannerrepository;
     private ArrayList<Integer> averageBeacon;
 
     public List<radiomap> getAllInRoom(String roomid){return repository.findByRoomid(roomid); }
@@ -55,6 +57,11 @@ public class radiomapService {
         }
         return 0;
     }
+
+    public List<fieldrssi> getsavedRadioMap(String roomid){
+        return fieldrssiRepository.findByRoomid(roomid);
+    }
+
     public String postRadioMap(radiomap rdm, int posx, int posy){
 //        List<radiomap> currentRadioMap = getAllInRoom(rdm.getRoomid());
 //        for (radiomap item: currentRadioMap) {
@@ -110,8 +117,13 @@ public class radiomapService {
 
     }
 
-    public String beaconRegister(){
-        return "In progress";
+    public String beaconRegister(beaconposition newBeacon){
+        System.out.println(newBeacon);
+        if(beaconPositionRepository.findByUuid(newBeacon.getUuid()).size() > 0){
+            return "Already Register";
+        }
+        beaconPositionRepository.save(newBeacon);
+        return "Success";
     }
 
     public String saveBeaconFound(scannerResult scannerValue){
@@ -205,23 +217,62 @@ public class radiomapService {
         return usersrepository.finduserinroom(roomid);
     }
 
-    public ArrayList getUserandPositioninRoom(String roomid){
+    public List<positionResult> getUserandPositioninRoom(String roomid){
         List<userposition> participatepos = trackingPosition(roomid);
         List<beaconowner> beaconowners = getBeaconOwnerinRoom(roomid);
         System.out.println(beaconowners);
         List<users> usersinroom = getUserinRoom(roomid);
-        ArrayList result = new ArrayList();
+        List<positionResult> result = new ArrayList<>();
         for (userposition i:participatepos) {
             List<beaconowner> owner = beaconowners.stream().filter(c -> c.getUuid().equals(i.getUuid()) ).toList();
+//            for(beaconowner o: beaconowners){
+//                if(o.getUuid().equals(i.getUuid())){
+//                    owner = o;
+//
+//                    break;
+//                }
+//            }
             if(owner.size() > 0){
-                result.add(List.of(i, usersinroom.stream().filter(d -> d.getUser_id().equals(owner.get(0).getUser_id())).toList().get(0)));
+                List<users> ownerdata = usersinroom.stream().filter(d -> d.getUser_id().equals(owner.get(0).getUser_id())).toList();
+                if(ownerdata.size() > 0){
+                    result.add(new positionResult(ownerdata.get(0).getUser_id(),ownerdata.get(0).getName(),ownerdata.get(0).getRole(),i.getUuid(),i.getPositionX(),i.getPositionY()));
+                }
+//                for(users u: usersinroom){
+//                    if(owner.getUser_id().equals(u.getUser_id())){
+//                        System.out.println(u);
+//                        result.add(new positionResult(u, i));
+//                    }
+//                }
             }
+
+//            result.add(new positionResult(usersinroom.stream().filter(d -> d.getUser_id().equals(owner.get(0).getUser_id())).toList().get(0),i));
+//            for(beaconowner o:beaconowners){
+//
+//            }
+//            for (users u:usersinroom) {
+//                if(u.getUser_id() == owner)
+//            }
         }
+        System.out.println(result);
         return result;
     }
 
     public String beaconLogin(String userid){
-        return beaconPositionRepository.findNotOwnedBeacons().toString();
+        List<beaconowner> userOwnedBeacon = beaconownerrepository.findByUseridAndReturntimestampIsNull(userid);
+        if(userOwnedBeacon.size() > 0){
+            return userid+" already login with beacon:"+userOwnedBeacon.get(0).getUuid();
+        }
+        List<beaconposition> notownedBeacons = beaconPositionRepository.findNotOwnedBeacons();
+        int ran = (int) (Math.random()*notownedBeacons.size());
+//        System.out.println(new beaconowner(userid, notownedBeacons.get(ran).getUuid()).getLogid());
+        beaconownerrepository.save(new beaconowner(userid, notownedBeacons.get(ran).getUuid()));
+        return userid +" get beacon:"+notownedBeacons.get(ran).getUuid();
+    }
+    public String beaconLogout(String userid){
+        List<beaconowner> userOwnedBeacon = beaconownerrepository.findByUseridAndReturntimestampIsNull(userid);
+        userOwnedBeacon.get(0).returnBeacon();
+        beaconownerrepository.save(userOwnedBeacon.get(0));
+        return userOwnedBeacon.get(0).getUser_id()+"has returned beacon "+userOwnedBeacon.get(0).getUuid()+" at "+userOwnedBeacon.get(0).getReturntimestamp();
     }
 
     public String participateRecord(String roomid, List<userposition> recordList){
@@ -236,7 +287,24 @@ public class radiomapService {
         return "success";
     }
 
+    public String addNewRoom(classroom newC){
+        classroomRepository.save(newC);
+        return "Success";
+    }
+
+    public classroom getRoomInfo(String roomid){
+        List<classroom> reqClass = classroomRepository.findByRoomid(roomid);
+        if(reqClass.size() == 0){
+            return new classroom();
+        }
+        return reqClass.get(0);
+    }
+
     public course addNewActivity(course nc){
+        if(courserepository.getSameCourse(nc.getCourseId(),nc.getRoomid(),nc.getRegular_weekday(),nc.getRegular_starttime(),nc.getRegular_endtime()).size() > 0){
+            System.out.println("Duplicate");
+            return nc;
+        }
         courserepository.save(nc);
         return nc;
     }
@@ -262,9 +330,41 @@ public class radiomapService {
 
     }
 
-    public List<enrollment> getStudentinCourse(String courseid){
-        List<enrollment> studentincourse = enrollmentrepository.findenrollmentOfStudent(courseid);
+        public List<users> getStudentinCourse(String courseid){
+        List<users> studentincourse = usersrepository.finduserincourse(courseid);
         return studentincourse;
+    }
+
+//    public List<enrollment> getStudentinCourse(String courseid){
+//        List<enrollment> studentincourse = enrollmentrepository.findenrollmentOfStudent(courseid);
+//        return studentincourse;
+//    }
+
+//    public String registerScanner(scanner s){
+//        List<scanner> existsScanner = scannerrepository.findByScannerid(s.getScannerid());
+//        if(existsScanner.size() == 0){
+//            return "This id already exists with another device.";
+//        }
+//        scannerrepository.save(s);
+//        return "Success, Please Login with id you registered.";
+//    }
+
+    public course getcurrentCourse(String roomid){
+        LocalDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Bangkok")).toLocalDateTime();
+        System.out.println(zonedDateTime.getDayOfWeek().toString());
+        List<course> coursesInRoom = courserepository.getCurrentCourse(roomid, zonedDateTime.getDayOfWeek().toString(),zonedDateTime.toLocalDate(),zonedDateTime.toLocalTime());
+        if(coursesInRoom.size() > 1){
+            throw new RuntimeException("Something went wrong");
+        }else if(coursesInRoom.size() == 0){
+            return null;
+        }
+
+        return coursesInRoom.get(0);
+    }
+
+    public LocalDateTime testTime(){
+        ZonedDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Bangkok"));
+        return zonedDateTime.toLocalDateTime();
     }
 
     public fieldrssi postRssi(fieldrssi fr){

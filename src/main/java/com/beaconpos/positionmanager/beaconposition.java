@@ -13,6 +13,7 @@ public class beaconposition {
     private Integer rssi1;
     private Integer rssi2;
     private Integer rssi3;
+    private boolean isactive = true;
 
     public beaconposition() {
     }
@@ -26,6 +27,14 @@ public class beaconposition {
         this.uuid = uuid;
         this.roomid = roomid;
         setRssiBySlot(slot, newRssi);
+    }
+
+    public boolean isIsactive() {
+        return isactive;
+    }
+
+    public void setIsactive(boolean isactive) {
+        this.isactive = isactive;
     }
 
     public Integer getRssiBySlot(int slot){

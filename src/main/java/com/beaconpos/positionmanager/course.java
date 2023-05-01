@@ -107,4 +107,9 @@ public class course {
     public void setSchedule_date(Date schedule_date) {
         this.schedule_date = schedule_date;
     }
+
+    @Override
+    public String toString(){
+        return courseid;
+    }
 }
