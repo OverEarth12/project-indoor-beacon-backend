@@ -11,4 +11,7 @@ public interface usersRepository extends JpaRepository<users, String> {
 
     @Query("select u from users u JOIN enrollment e ON u.user_id = e.userid WHERE e.courseid = ?1 AND e.enddate IS NULL ")
     List<users> finduserincourse(String courseid);
+
+    @Query("select u from users u where u.user_id = ?1")
+    List<users> findbyuserid(String user_id);
 }

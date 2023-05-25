@@ -59,6 +59,11 @@ public class radiomapController {
         return RadioMapService.beaconLogout(userid);
     }
 
+    @RequestMapping(value = "/userlogout/{uuid}", method = POST)
+    public String userlogout(@PathVariable("uuid") String uuid){
+        return RadioMapService.logoutByBeacon(uuid);
+    }
+
 //    @CrossOrigin(origins = "http://10.72.13.78:54678")
     @RequestMapping(value = "/saveBeacons", method = POST)
     public String saveBeacons(@RequestBody scannerResult scannerValue){
@@ -125,5 +130,46 @@ public class radiomapController {
     @RequestMapping(value = "/test", method = GET)
     public radiomap testScannerinRoom(@RequestBody radiomap r){
         return r;
+    }
+
+    @CrossOrigin(origins = "http://localhost:3000")
+    @RequestMapping(value = "/watchcourse", method = POST)
+    public String watchingCourse(@RequestBody courseowner co){
+        return RadioMapService.watchingCourse(co);
+    }
+
+    @CrossOrigin(origins = "http://localhost:3000")
+    @RequestMapping(value = "/stopwatchcourse", method = POST)
+    public String stopwatchingCourse(@RequestBody courseowner co){
+        return RadioMapService.stopWatching(co);
+    }
+
+    @CrossOrigin(origins = "http://localhost:3000")
+    @RequestMapping(value = "/getschedule/{userid}", method = GET)
+    public List<course> getSchedule(@PathVariable("userid") String userid){
+        return RadioMapService.getScheduleOfTeacher(userid);
+    }
+
+    @CrossOrigin(origins = "http://localhost:3000")
+    @RequestMapping(value = "/getroomdata/{roomid}", method = GET)
+    public courseData getRunningCourse(@PathVariable("roomid") String roomid){
+        return RadioMapService.getRunningCourse(roomid);
+    }
+
+    @RequestMapping(value = "/getsavedrssi/{roomid}", method = GET)
+    public List<fieldrssi> getsavedRadiomap(@PathVariable("roomid") String roomid){
+        return RadioMapService.ViewSavedRadioMap(roomid);
+    }
+
+    @CrossOrigin(origins = "http://localhost:3000")
+    @RequestMapping(value = "/getallcourse", method = GET)
+    public List<course> getAllcourse(){
+        return RadioMapService.getAllcourse();
+    }
+
+    @CrossOrigin(origins = "http://localhost:3000")
+    @RequestMapping(value = "/getallroom", method = GET)
+    public List<classroom> getAllroom(){
+        return RadioMapService.getAllsavedRoom();
     }
 }

@@ -12,6 +12,12 @@ public class users {
     public users() {
     }
 
+    public users(String user_id, String name, String role) {
+        this.user_id = user_id;
+        this.name = name;
+        this.role = role;
+    }
+
     public String getUser_id() {
         return user_id;
     }

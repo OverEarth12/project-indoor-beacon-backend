@@ -33,6 +33,10 @@ public class radiomapService {
     private beaconownerRepository beaconownerrepository;
     @Autowired
     private usersRepository usersrepository;
+    @Autowired
+    private courseownerRepository courseownerrepository;
+    @Autowired
+    private radiomapRepository radiomaprepository;
 //    @Autowired
 //    private scannerRepository scannerrepository;
     private ArrayList<Integer> averageBeacon;
@@ -210,7 +214,7 @@ public class radiomapService {
     }
 
     public List<beaconowner> getBeaconOwnerinRoom(String roomid){
-        return beaconownerrepository.findbyRoomId("DEMO");
+        return beaconownerrepository.findbyRoomId(roomid);
     }
 
     public List<users> getUserinRoom(String roomid){
@@ -261,6 +265,9 @@ public class radiomapService {
         List<beaconowner> userOwnedBeacon = beaconownerrepository.findByUseridAndReturntimestampIsNull(userid);
         if(userOwnedBeacon.size() > 0){
             return userid+" already login with beacon:"+userOwnedBeacon.get(0).getUuid();
+        }
+        if(usersrepository.findbyuserid(userid).size() == 0){
+            usersrepository.save(new users(userid, "", "Student"));
         }
         List<beaconposition> notownedBeacons = beaconPositionRepository.findNotOwnedBeacons();
         int ran = (int) (Math.random()*notownedBeacons.size());
@@ -351,8 +358,8 @@ public class radiomapService {
 
     public course getcurrentCourse(String roomid){
         LocalDateTime zonedDateTime = ZonedDateTime.now(ZoneId.of("Asia/Bangkok")).toLocalDateTime();
-        System.out.println(zonedDateTime.getDayOfWeek().toString());
         List<course> coursesInRoom = courserepository.getCurrentCourse(roomid, zonedDateTime.getDayOfWeek().toString(),zonedDateTime.toLocalDate(),zonedDateTime.toLocalTime());
+        System.out.println(coursesInRoom);
         if(coursesInRoom.size() > 1){
             throw new RuntimeException("Something went wrong");
         }else if(coursesInRoom.size() == 0){
@@ -360,6 +367,74 @@ public class radiomapService {
         }
 
         return coursesInRoom.get(0);
+    }
+
+    public String watchingCourse(courseowner c){
+        if(courseownerrepository.findByCourseidAndUserid(c.getCourseid(),c.getUserid()).size() > 0){
+            return "This Teacher already watch this course";
+        }
+        List<users> userget = usersrepository.findbyuserid(c.getUserid());
+        if(userget.size() == 0){
+            return "Not found this user";
+        }else if(!(userget.get(0).getRole().equals("Teacher"))){
+            System.out.println(userget.get(0).getRole());
+            return "This user not teacher, cannot be own course";
+        }
+        courseownerrepository.save(c);
+        return "success";
+    }
+
+    public String stopWatching(courseowner c){
+        List<courseowner> owning = courseownerrepository.findByCourseidAndUserid(c.getCourseid(),c.getUserid());
+        if(owning.size() > 0){
+            courseownerrepository.deleteById(owning.get(0).getId());
+            return "Stopped"+c.getUserid()+"from watch course:"+c.getCourseid();
+        }
+        return "Not watch this course yet";
+    }
+
+    public List<course> getScheduleOfTeacher(String userid){
+        List<users> userget = usersrepository.findbyuserid(userid);
+        if(!userget.get(0).getRole().equals("Teacher")){
+            System.out.println("This user not teacher, cannot be own course");
+        }
+        List<String> listofCourseid = new ArrayList<String>();
+        for (courseowner c:courseownerrepository.findByUserid(userid)) {
+            listofCourseid.add(c.getCourseid());
+        }
+        return courserepository.findByCourseidIn(listofCourseid);
+    }
+
+    public courseData getRunningCourse(String roomid){
+        course currentcourse = getcurrentCourse(roomid);
+        List<String> checker = new ArrayList<>();
+        List<String> studentinclass = new ArrayList<>();
+        for (courseowner co:courseownerrepository.findByCourseid(currentcourse.getCourseId())) {
+            checker.add(co.getUserid());
+        }
+        for (enrollment er:enrollmentrepository.findenrollmentOfStudent(currentcourse.getCourseId())) {
+            studentinclass.add(er.getUser_id());
+        }
+        courseData tosent = new courseData(currentcourse,checker,studentinclass);
+        System.out.println(tosent);
+        return tosent;
+    }
+
+    public String logoutByBeacon(String uuid){
+        List<beaconowner> userOwnedBeacon = beaconownerrepository.findByUuidAndReturntimestampIsNull(uuid);
+        userOwnedBeacon.get(0).returnBeacon();
+        beaconownerrepository.save(userOwnedBeacon.get(0));
+        return userOwnedBeacon.get(0).getUser_id()+"has returned beacon "+userOwnedBeacon.get(0).getUuid()+" at "+userOwnedBeacon.get(0).getReturntimestamp();
+    }
+
+    public List<fieldrssi> ViewSavedRadioMap(String roomid){
+        return fieldrssiRepository.findByRoomid(roomid);
+    }
+
+    public List<classroom> getAllsavedRoom(){return classroomRepository.findAll();}
+
+    public List<course> getAllcourse(){
+        return courserepository.findAll();
     }
 
     public LocalDateTime testTime(){

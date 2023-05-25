@@ -12,4 +12,6 @@ public interface beaconownerRepository extends JpaRepository<beaconowner, String
     List<beaconowner> findByUserid(String userid);
 
     List<beaconowner> findByUseridAndReturntimestampIsNull(String userid);
+
+    List<beaconowner> findByUuidAndReturntimestampIsNull(String uuid);
 }
